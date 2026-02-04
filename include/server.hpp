@@ -1,0 +1,63 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: liliu <liliu@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/02/03 15:54:30 by liliu             #+#    #+#             */
+/*   Updated: 2026/02/04 16:41:23 by liliu            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#pragma once
+
+#include <algorithm>
+#include <cctype>
+#include <cstring>
+#include <fcntl.h>
+#include <iostream>
+#include <map>
+#include <netinet/in.h>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <vector>
+
+#include <arpa/inet.h>
+ #include <poll.h>
+#include <map>
+
+class Client;
+class Channel;
+
+class Server
+{
+    public:
+        Server(int port, const std::string &password);
+        ~Server();
+        void start();
+        void process_command(Client *client, const std::string &message);
+        const std::string &getPassword() const;
+        void disconnectClient(int client_fd);
+        Client* getClientByFd(int fd);
+        Client* getClientByNick(const std:: string &nick);
+        Channel* getChannel(const std::string &name);
+        const std::map<std::string, Channel*> &getChannels() const;
+        void createChannel(const std::string &name, Client *op);
+        const std::string &getServerName() const;
+    
+    private:
+        int _port;
+        std::string _password;
+        std::string _serverName;
+        int _socketfd;
+        std::vector<Client*> listClients;
+        std::map<std::string, Channel *> listChannels;
+        std::vector<struct pollfd> pollfds;
+        void acceptclients();
+        void loop();
+        void handle_client_data(int client_fd);
+};
