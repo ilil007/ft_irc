@@ -6,7 +6,7 @@
 /*   By: liliu <liliu@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 16:21:33 by liliu             #+#    #+#             */
-/*   Updated: 2026/02/04 16:19:41 by liliu            ###   ########.fr       */
+/*   Updated: 2026/02/23 17:41:54 by liliu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,4 +67,5 @@ void	handle_invite(Server *server, Client *client,
 	client->send_reply(":" + server->getServerName() + " 341 "
 		+ client->getname() + " " + target_nick + " " + channel_name);
 	target->send_reply(":" + client->getname() + " INVITE " + target_nick + " :"
-		+ chan
+		+ channel_name);
+}

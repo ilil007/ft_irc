@@ -6,7 +6,7 @@
 /*   By: liliu <liliu@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/26 16:58:36 by liliu             #+#    #+#             */
-/*   Updated: 2026/02/04 18:51:35 by liliu            ###   ########.fr       */
+/*   Updated: 2026/02/07 17:14:53 by liliu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -337,34 +337,49 @@ void Server::process_command(Client *client, const std::string &message)
     std::string command;
     ss >> command;//>> 这个操作符, 从输入流里读单词
 
-    std::vector<std::string> args;
-    std::string arg;
+    std::vector<std::string> args;//参数列表（传给 handler）
+    std::string arg;//当前参数
     
     std::string rest;
     std::getline(ss, rest);
-    if (!rest.empty() && rest[0] == ' ')
+    if (!rest.empty() && rest[0] == ' ')//去掉开头那个空格
         rest = rest.substr(1);
+        //rest = " #room :hello world"
         //substr(1)=从第 1 个位置开始，一直取到字符串结尾。
-        
+    
+    //PRIVMSG #room :hello world everyone
+    //":hello world everyone" 是一个参数
     size_t colon_pos = rest.find(':');
-    if (colon_pos != std::string::npos)
+    if (colon_pos != std::string::npos)//如果找到了冒号（有“尾参数”）
     {
+        /*
+        拆成两部分
+        before_colon = "#room "
+        after_colon  = "hello world"
+        */
         std::string before_colon = rest.substr(0, colon_pos);
         std::string after_colon = rest.substr(colon_pos + 1);
         
         std::stringstream before_ss(before_colon);
-        while(before_ss >> arg)
+        //把冒号前的参数按空格拆
+        while(before_ss >> arg)//>> 必须读进一个变量, 它不能直接读进 vector
         {
             args.push_back(arg);
         }
-        if (command == "NICK" && colon_pos == 0)
-            args.push_back(":" + after_colon);
+        if (command == "NICK" && colon_pos == 0)//特殊处理 NICK
+            args.push_back(":" + after_colon);//为了兼容： NICK :new nickname
         else
-            args.push_back(after_colon);
+            args.push_back(after_colon);//冒号后的内容整体当一个参数
+            //args = ["#room", "hello world"]
     }
     else
     {
-        std::stringstream rest_ss(rest);
+        //rest = rest.substr(1);
+        std::stringstream rest_ss(rest);//如果没有冒号（普通参数）
+        /*
+        例子： JOIN #room
+        结果： args = ["#room"]
+        */
         while(rest_ss >> arg)
         {
             args.push_back(arg);
@@ -412,17 +427,17 @@ const std::string& Server::getPassword() const
 {
     return _password;
 }
-
+//根据 fd 找客户端
 Client* Server::getClientByFd(int fd)
 {
     for (size_t i = 0; i < listClients.size(); ++i)
     {
-        if (listClients[i]->getfd() == fd)
+        if (listClients[i]->getfd() == fd)//这个 Client 的 fd,是不是我在找的那个？”
             return listClients[i];
     }
     return NULL;
 }
-
+//根据 nick 找客户端
 Client* Server::getClientByNick(const std::string& nick)
 {
     for (size_t i = 0; i < listClients.size(); ++i)
@@ -432,15 +447,21 @@ Client* Server::getClientByNick(const std::string& nick)
     }
     return NULL;
 }
-
+//根据名字找频道
 Channel* Server::getChannel(const std::string& name)
 {
+    //std::map<std::string, Channel*> listChannels;
+    //find(name)：->找到了 → 返回一个 iterator，指向这个元素
+    //没找到 → 返回 end() 这个 iterator（它不指向任何元素，
     std::map<std::string, Channel*>::iterator it = listChannels.find(name);
     if (it != listChannels.end())
         return it->second;
+        //it->first → 频道名
+        //it->second → Channel*
     return NULL;
 }
-
+//const &  你可以看, 但不能改！ 这是个“只读接口”，外面拿到这个 map 的引用，但只能读，不能改。
+//函数后面的 const, 这个函数不会修改 Server 自己
 const std::map<std::string, Channel*>& Server::getChannels() const
 {
     return listChannels;
