@@ -82,7 +82,6 @@ MODE #chan t
 MODE #chan k
 MODE #chan o
 MODE #chan l
-
 ### Terminal 3
 irssi
 /connect localhost 6667 meme
@@ -92,4 +91,4 @@ NICK lili
 USER lili0 0 * :Liliu
 JOIN #chan
 PRIVMSG #chan :This is a msg testtttt
-PRIVMSG will :This is a priv msg test
+PRIVMSG haiwang :This is a priv msg test
